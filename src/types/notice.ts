@@ -3,9 +3,11 @@ export interface Notice {
     title: string;
     content: string;
     category: NoticeCategory;
-    createdAt: string;
-    createdBy: string;
+    posted_by: string;
+    updated_at: string;
+    created_at: string;
     attachments?: any;
+    image_url?: string;
 }
 
 export type NoticeCategory = 'maintenance' | 'events' | 'security' | 'general';

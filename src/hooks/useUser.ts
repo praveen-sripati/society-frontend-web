@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+interface ApiResponse<T> {
+    success: boolean;
+    message: string;
+    data: T;
+}
+
 interface User {
     userId: string;
     role: 'resident' | 'committee' | 'admin';
@@ -15,11 +21,11 @@ export const useUser = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const response = await axios.get('/api/users/me', { withCredentials: true });
-                setUser(response.data);
+                const response = await axios.get<ApiResponse<User>>('/api/users/me', { withCredentials: true });
+                setUser(response.data.data);
                 setError(null);
             } catch (err: any) {
-                setError(err.response?.data?.error || 'Failed to fetch user data');
+                setError(err.response?.data?.message || 'Failed to fetch user data');
                 setUser(null);
             } finally {
                 setLoading(false);

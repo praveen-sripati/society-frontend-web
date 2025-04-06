@@ -1,20 +1,24 @@
-import { Button, Form, Input, message, notification, Typography } from 'antd'; // Import notification
+import { Button, Form, Input, notification, Typography } from 'antd';
 import axios from 'axios';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PageLoader from './PageLoader';
+import { 
+    API_ENDPOINTS, 
+    NOTIFICATION_CONFIG, 
+    FORM_RULES,
+    VALIDATION_MESSAGES 
+} from '../constants';
 
 const { Title } = Typography;
-
-interface LoginPageProps {}
 
 interface LoginValues {
     mobileNumber: string;
     password: string;
 }
 
-const LoginPage: React.FC<LoginPageProps> = () => {
+const LoginPage: React.FC = () => {
     const [api, contextHolder] = notification.useNotification();
     const [form] = Form.useForm();
     const navigate = useNavigate();
@@ -26,12 +30,11 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             .then((values) => {
                 loginUser(values);
             })
-            .catch((errorInfo) => {
+            .catch(() => {
                 api.error({
                     message: 'Validation Failed',
-                    description: 'Please check your input and try again.',
-                    duration: 5,
-                    placement: 'top'
+                    description: VALIDATION_MESSAGES.REQUIRED,
+                    ...NOTIFICATION_CONFIG
                 });
             });
     };
@@ -39,23 +42,24 @@ const LoginPage: React.FC<LoginPageProps> = () => {
     const loginUser = async (values: LoginValues) => {
         setIsLoading(true);
         try {
-            // First, make the login request
-            await axios.post('/users/login', {
+            const response = await axios.post(API_ENDPOINTS.AUTH.LOGIN, {
                 mobile_number: values.mobileNumber,
                 password: values.password,
             });
 
-            // Then, update the auth context by calling checkAuth
             await auth.checkAuth();
 
-            message.success('Login successful!');
+            notification.success({
+                message: 'Login Successful',
+                description: response.data.message,
+                ...NOTIFICATION_CONFIG
+            });
             navigate('/dashboard', { replace: true });
         } catch (error: any) {
             api.error({
                 message: 'Login Failed',
-                description: error.response?.data?.error || 'Invalid credentials. Please try again.',
-                duration: 5,
-                placement: 'top'
+                description: error.response?.data?.message || 'Invalid credentials. Please try again.',
+                ...NOTIFICATION_CONFIG
             });
         } finally {
             setIsLoading(false);

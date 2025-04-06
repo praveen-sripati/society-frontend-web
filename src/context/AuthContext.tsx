@@ -4,10 +4,17 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { UserRole, Permission, hasPermission } from '../config/permissions';
 import { notification } from 'antd';
 import { useLoading } from './LoadingContext';
+import { API_ENDPOINTS, NOTIFICATION_CONFIG } from '../constants';
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = 'http://localhost:3000/api';
+axios.defaults.baseURL = API_ENDPOINTS.BASE_URL;
+
+interface ApiResponse<T> {
+    success: boolean;
+    message: string;
+    data: T;
+}
 
 interface User {
     userId: string;
@@ -45,8 +52,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const checkAuth = async () => {
         try {
-            const response = await axios.get('/users/me');
-            setUser(response.data);
+            const response = await axios.get<ApiResponse<User>>(API_ENDPOINTS.AUTH.ME);
+            setUser(response.data.data);
             setIsAuthenticated(true);
         } catch (error) {
             setUser(null);
@@ -67,7 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const logout = async () => {
         try {
             setIsLoading(true);
-            await axios.post('/users/logout');
+            await axios.post(API_ENDPOINTS.AUTH.LOGOUT);
             setIsAuthenticated(false);
             setUser(null);
         } catch (error) {
@@ -75,8 +82,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             notification.error({
                 message: 'Logout Failed',
                 description: 'There was a problem logging out. Please try again.',
-                placement: 'top',
-                duration: 5,
+                ...NOTIFICATION_CONFIG
             });
         } finally {
             setIsLoading(false);
