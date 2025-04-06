@@ -1,5 +1,6 @@
-import { ArrowLeftOutlined, InboxOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, HomeOutlined, InboxOutlined } from '@ant-design/icons';
 import {
+  Breadcrumb,
   Button,
   Form,
   GetProp,
@@ -13,37 +14,16 @@ import {
   message,
   notification,
 } from 'antd';
+import axios from 'axios';
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FORM_RULES, NOTICE_CATEGORIES, NOTICE_MESSAGES, NOTIFICATION_CONFIG } from '../../../constants';
 import { useLoading } from '../../../context/LoadingContext';
-import { noticeService } from '../../../services/noticeService';
 import { CreateNoticePayload } from '../../../types/notice';
-import axios from 'axios';
 
 const { Title } = Typography;
 const { TextArea } = Input;
 const { Dragger } = Upload;
-
-const props: UploadProps = {
-  name: 'file',
-  multiple: true,
-  action: 'https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload',
-  onChange(info) {
-    const { status } = info.file;
-    if (status !== 'uploading') {
-      console.log(info.file, info.fileList);
-    }
-    if (status === 'done') {
-      message.success(`${info.file.name} file uploaded successfully.`);
-    } else if (status === 'error') {
-      message.error(`${info.file.name} file upload failed.`);
-    }
-  },
-  onDrop(e) {
-    console.log('Dropped files', e.dataTransfer.files);
-  },
-};
 
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 
@@ -63,6 +43,21 @@ const CreateNotice: React.FC = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [pdfFileList, setPdfFileList] = useState<UploadFile[]>([]);
+
+  const handlePdfUploadChange: UploadProps['onChange'] = ({ fileList: newFileList, file }) => {
+    const isPdf = file.type === 'application/pdf';
+    const isLt10M = (file.size as number) / 1024 / 1024 < 10;
+    if (!isPdf) {
+      message.error('You can only upload PDF files!');
+    }
+    if (!isLt10M) {
+      message.error('PDF must be smaller than 10MB!');
+    }
+    if (isPdf && isLt10M) {
+      setPdfFileList(newFileList.slice(-1)); // Keep only the last added PDF
+    }
+  };
 
   const handlePreview = async (file: UploadFile) => {
     if (!file.url && !file.preview) {
@@ -73,7 +68,19 @@ const CreateNotice: React.FC = () => {
     setPreviewOpen(true);
   };
 
-  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) => setFileList(newFileList);
+  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList, file }) => {
+    const isJpgPngGif = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/gif';
+    const isLt2M = (file.size as number) / 1024 / 1024 < 2;
+    if (!isJpgPngGif) {
+      message.error('You can only upload JPG, PNG, GIF files!');
+    }
+    if (!isLt2M) {
+      message.error('Image must smaller than 2MB!');
+    }
+    if (isJpgPngGif && isLt2M) {
+      setFileList(newFileList);
+    }
+  };
 
   const handleSubmit = async (values: CreateNoticePayload) => {
     try {
@@ -89,15 +96,22 @@ const CreateNotice: React.FC = () => {
         }
       });
 
+      pdfFileList.forEach((file) => {
+        if (file.originFileObj) {
+          formData.append('pdfAttachment', file.originFileObj);
+        }
+      });
+
       await axios.post('http://localhost:3000/api/notices', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
+
       message.success(NOTICE_MESSAGES.CREATE.SUCCESS);
       form.resetFields();
       setFileList([]);
+      setPdfFileList([]);
       navigate('/notice-board');
     } catch (error: any) {
       api.error({
@@ -113,6 +127,17 @@ const CreateNotice: React.FC = () => {
   return (
     <div className="p-6">
       {contextHolder}
+      <Breadcrumb className="mb-4">
+        <Breadcrumb.Item>
+          <Link to="/">
+            <HomeOutlined />
+          </Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Link to="/notice-board">Notice Board</Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>Create Notice</Breadcrumb.Item>
+      </Breadcrumb>
       <Button
         type="link"
         icon={<ArrowLeftOutlined />}
@@ -143,7 +168,9 @@ const CreateNotice: React.FC = () => {
                   fileList={fileList}
                   onPreview={handlePreview}
                   onChange={handleChange}
+                  beforeUpload={() => false}
                   className="create-notice-upload"
+                  accept="image/*"
                 >
                   {fileList.length < 1 && '+ Upload'}
                 </Upload>
@@ -170,16 +197,20 @@ const CreateNotice: React.FC = () => {
             <TextArea placeholder="Enter notice content" rows={2} />
           </Form.Item>
 
-          <Form.Item label={<span className="text-white">Upload Attachments</span>} name="attachments">
-            <Dragger {...props}>
+          <Form.Item label="Upload PDF Attachment" name="pdfAttachment">
+            <Dragger
+              name="pdfAttachment"
+              listType="text"
+              fileList={pdfFileList}
+              onChange={handlePdfUploadChange}
+              beforeUpload={() => false}
+              accept="application/pdf"
+            >
               <p className="ant-upload-drag-icon">
                 <InboxOutlined />
               </p>
-              <p className="ant-upload-text">Click or drag file to this area to upload</p>
-              <p className="ant-upload-hint">
-                Support for a single or bulk upload. Strictly prohibited from uploading company data or other banned
-                files.
-              </p>
+              <p className="ant-upload-text">Click or drag PDF to this area to upload</p>
+              <p className="ant-upload-hint">Only PDF files are allowed. Max size: 10MB.</p>
             </Dragger>
           </Form.Item>
 

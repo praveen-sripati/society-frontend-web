@@ -1,4 +1,4 @@
-import { ArrowLeftOutlined, DeleteOutlined, HomeOutlined, PlusOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DeleteOutlined, FilePdfOutlined, HomeOutlined, PlusOutlined } from '@ant-design/icons';
 import {
   Badge,
   Breadcrumb,
@@ -10,6 +10,8 @@ import {
   Modal,
   Select,
   Space,
+  Tag,
+  Tooltip,
   Typography,
   notification,
 } from 'antd';
@@ -31,6 +33,7 @@ const NoticeBoard: React.FC = () => {
   const { startLoading, stopLoading } = useLoading();
   const [api, contextHolder] = notification.useNotification();
   const [modalApi, modalContextHolder] = Modal.useModal();
+  const [ellipsis, setEllipsis] = useState(true);
   const navigate = useNavigate();
   const { can } = usePermission();
 
@@ -191,11 +194,15 @@ const NoticeBoard: React.FC = () => {
           {notices.map((notice) => (
             <Card
               key={notice.id}
-              className="bg-yt-light-gray cursor-pointer transition-transform transform hover:scale-[1.02] hover:shadow-lg relative group"
+              className="bg-yt-light-gray cursor-pointer transition-transform transform hover:scale-[1.02] hover:shadow-lg relative group notice-card"
               onClick={() => handleNoticeClick(notice.id)}
             >
               <div className="flex justify-between items-start mb-2">
-                <Title level={4} className="text-white mb-0">
+                <Title
+                  level={4}
+                  className="text-white mb-0 pr-8"
+                  ellipsis={ellipsis ? { tooltip: notice.title } : false}
+                >
                   {notice.title}
                 </Title>
                 {can('delete:notice') && (
@@ -228,8 +235,30 @@ const NoticeBoard: React.FC = () => {
               <Paragraph className="text-gray-400 mb-4" ellipsis={{ rows: 2 }}>
                 {notice.content}
               </Paragraph>
+              <div className="mb-4">
+                <Text strong={true}>Attachments: </Text>
+                {notice.attachments ? (
+                  <Tooltip title={notice.attachments.filename} key={notice.attachments.filename}>
+                    <a
+                      onClick={(e) => e.stopPropagation()}
+                      href={notice.attachments.url}
+                      download={notice.attachments.filename} // Use the download attribute
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button type="link" icon={<FilePdfOutlined />}>
+                        Download PDF
+                      </Button>
+                    </a>
+                  </Tooltip>
+                ) : (
+                  <Text className="leading-[32px]">NA</Text>
+                )}
+              </div>
               <div className="flex justify-between items-center mt-auto">
-                <Badge color={CATEGORY_COLORS[notice.category]} text={notice.category} />
+                <Tag color={CATEGORY_COLORS[notice.category]}>
+                  {notice?.category?.charAt(0).toUpperCase() + notice?.category?.slice(1)}
+                </Tag>
                 <Text className="text-gray-400">
                   {new Date(notice.created_at).toLocaleDateString('en-GB', {
                     day: '2-digit',

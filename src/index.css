@@ -15,3 +15,9 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.notice-card .ant-card-body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}

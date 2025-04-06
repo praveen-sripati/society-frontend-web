@@ -1,13 +1,13 @@
+import { ArrowLeftOutlined, DeleteOutlined, FilePdfOutlined, HomeOutlined } from '@ant-design/icons';
+import { Badge, Breadcrumb, Button, Card, Image, Modal, Tag, Tooltip, Typography, notification } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Typography, notification, Modal, Badge, Breadcrumb, Image } from 'antd';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Notice } from '../../../types/notice';
-import { noticeService } from '../../../services/noticeService';
-import { useLoading } from '../../../context/LoadingContext';
-import { ArrowLeftOutlined, DeleteOutlined, HomeOutlined } from '@ant-design/icons';
 import { CATEGORY_COLORS, NOTICE_MESSAGES } from '../../../constants';
-import { NOTIFICATION_CONFIG } from '../../../types/api';
+import { useLoading } from '../../../context/LoadingContext';
 import { usePermission } from '../../../hooks/usePermission';
+import { noticeService } from '../../../services/noticeService';
+import { NOTIFICATION_CONFIG } from '../../../types/api';
+import { Notice } from '../../../types/notice';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -22,7 +22,7 @@ const NoticeDetails: React.FC = () => {
   const { startLoading, stopLoading } = useLoading();
   const [api, contextHolder] = notification.useNotification();
   const [modalApi, modalContextHolder] = Modal.useModal();
-  const [ellipsis, setEllipsis] = useState(true);
+  const [ellipsis, _setEllipsis] = useState(true);
   const navigate = useNavigate();
   const { can } = usePermission();
 
@@ -114,11 +114,12 @@ const NoticeDetails: React.FC = () => {
 
       <Card className="max-w-3xl mx-auto bg-yt-light-gray">
         <div className="flex justify-between items-start">
-          <Title level={2} className="text-white mb-0">
+          <Title level={2} className="text-white mr-2 mb-0" ellipsis={ellipsis ? { tooltip: notice.title } : false}>
             {notice.title}
           </Title>
           {can('delete:notice') && (
             <Button
+              style={{ padding: 20 }}
               type="text"
               danger
               size="large"
@@ -148,25 +149,28 @@ const NoticeDetails: React.FC = () => {
         <Paragraph ellipsis={ellipsis ? { rows: 5, expandable: true, symbol: 'more' } : false}>
           {notice.content}
         </Paragraph>
-        {notice.attachments && notice.attachments.length > 0 && (
-          <div className="my-4">
-            <Text strong className="text-white mb-2 pr-2">
-              Attachments:
-            </Text>
-            {notice.attachments.map((attachment: Attachment, index: number) => (
+        <div className="mb-4">
+          <Text strong={true}>Attachments: </Text>
+          {notice.attachments && (
+            <Tooltip title={notice.attachments.filename} key={notice.attachments.filename}>
               <a
-                href={attachment.url}
+                onClick={(e) => e.stopPropagation()}
+                href={notice.attachments.url}
+                download={notice.attachments.filename} // Use the download attribute
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-300"
               >
-                {attachment.filename}
+                <Button type="link" icon={<FilePdfOutlined />}>
+                  Download PDF
+                </Button>
               </a>
-            ))}
-          </div>
-        )}
+            </Tooltip>
+          )}
+        </div>
         <div className="flex justify-between items-center">
-          <Badge color={CATEGORY_COLORS[notice.category]} text={notice.category} />
+          <Tag color={CATEGORY_COLORS[notice.category]}>
+            {notice?.category?.charAt(0).toUpperCase() + notice?.category?.slice(1)}
+          </Tag>
           <Text className="text-gray-400">
             Posted on{' '}
             {new Date(notice.created_at).toLocaleDateString('en-GB', {

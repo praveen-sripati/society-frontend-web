@@ -32,8 +32,8 @@ export const NOTICE_MESSAGES = {
 } as const; 
 
 export const CATEGORY_COLORS = {
-    maintenance: 'green',
-    events: 'blue',
-    security: 'red',
-    general: 'orange',
+    maintenance: '#059212',
+    events: '#AA60C8',
+    security: '#BF3131',
+    general: '#108ee9',
 };
