@@ -4,7 +4,7 @@ import { Spin } from 'antd';
 // Lazy load components
 const NoticeBoard = React.lazy(() => import('./components/NoticeBoard'));
 const NoticeDetails = React.lazy(() => import('./components/NoticeDetails'));
-const CreateNotice = React.lazy(() => import('./components/CreateNotice'));
+const NoticeForm = React.lazy(() => import('./components/NoticeForm'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -26,13 +26,13 @@ export const LazyNoticeDetails = () => (
     </Suspense>
 );
 
-export const LazyCreateNotice = () => (
+export const LazyNoticeForm = () => (
     <Suspense fallback={<LoadingFallback />}>
-        <CreateNotice />
+        <NoticeForm />
     </Suspense>
 );
 
 // Direct exports for non-lazy usage
 export { default as NoticeBoard } from './components/NoticeBoard';
-export { default as CreateNotice } from './components/CreateNotice';
+export { default as NoticeForm } from './components/NoticeForm';
 export { default as NoticeDetails } from './components/NoticeDetails'; 

@@ -15,8 +15,8 @@ import {
   notification,
 } from 'antd';
 import axios from 'axios';
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FORM_RULES, NOTICE_CATEGORIES, NOTICE_MESSAGES, NOTIFICATION_CONFIG } from '../../../constants';
 import { useLoading } from '../../../context/LoadingContext';
 import { CreateNoticePayload } from '../../../types/notice';
@@ -35,7 +35,7 @@ const getBase64 = (file: FileType): Promise<string> =>
     reader.onerror = (error) => reject(error);
   });
 
-const CreateNotice: React.FC = () => {
+const NoticeForm: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { startLoading, stopLoading } = useLoading();
@@ -44,10 +44,63 @@ const CreateNotice: React.FC = () => {
   const [previewImage, setPreviewImage] = useState('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [pdfFileList, setPdfFileList] = useState<UploadFile[]>([]);
+  const { id } = useParams();
+
+  useEffect(() => {
+    if (id) {
+      // Fetch notice data for editing
+      startLoading();
+      axios
+        .get(`http://localhost:3000/api/notices/${id}`) // Adjust URL if needed
+        .then((response) => {
+          const noticeData = response.data.data.notice;
+          form.setFieldsValue({
+            title: noticeData.title,
+            category: noticeData.category,
+            content: noticeData.content,
+          });
+          if (noticeData.image_url) {
+            setFileList([
+              {
+                uid: '1',
+                name: 'current_image',
+                url: noticeData.image_url,
+              } as UploadFile,
+            ]); // Type assertion for UploadFile
+          }
+          console.log(noticeData)
+          if (noticeData.attachments?.url) {
+            setPdfFileList([
+              {
+                uid: '1',
+                name: noticeData.attachments?.filename,
+                url: noticeData.attachments?.url,
+                fileName: 'current_pdf_url'
+              } as UploadFile
+            ])
+          }
+        })
+        .catch((error: any) => {
+          api.error({
+            message: NOTICE_MESSAGES.FETCH.ERROR, // Assuming you have a FETCH error message
+            description: error.response?.data?.message || 'Failed to fetch notice data.',
+            ...NOTIFICATION_CONFIG,
+          });
+          navigate('/notice-board'); // Redirect to notice board on error
+        })
+        .finally(() => {
+          stopLoading();
+        });
+    }
+  }, [id]);
 
   const handlePdfUploadChange: UploadProps['onChange'] = ({ fileList: newFileList, file }) => {
     const isPdf = file.type === 'application/pdf';
     const isLt10M = (file.size as number) / 1024 / 1024 < 10;
+    if (file.fileName === 'current_pdf_url') {
+      setPdfFileList(newFileList.slice(-1));
+      return;
+    }
     if (!isPdf) {
       message.error('You can only upload PDF files!');
     }
@@ -71,6 +124,11 @@ const CreateNotice: React.FC = () => {
   const handleChange: UploadProps['onChange'] = ({ fileList: newFileList, file }) => {
     const isJpgPngGif = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/gif';
     const isLt2M = (file.size as number) / 1024 / 1024 < 2;
+
+    if (file.name === 'current_image') {
+      setFileList(newFileList);
+      return;
+    }
     if (!isJpgPngGif) {
       message.error('You can only upload JPG, PNG, GIF files!');
     }
@@ -93,22 +151,36 @@ const CreateNotice: React.FC = () => {
       fileList.forEach((file) => {
         if (file.originFileObj) {
           formData.append('image', file.originFileObj);
+        } else {
+          formData.append('current_image_url', file.url || '');
         }
       });
 
       pdfFileList.forEach((file) => {
         if (file.originFileObj) {
           formData.append('pdfAttachment', file.originFileObj);
+        } else {
+          formData.append('current_pdf_url', file.url || '');
         }
       });
 
-      await axios.post('http://localhost:3000/api/notices', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      if (id) {
+        // Editing an existing notice
+        await axios.put(`http://localhost:3000/api/notices/${id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      } else {
+        // Creating a new notice
+        await axios.post('http://localhost:3000/api/notices', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      }
 
-      message.success(NOTICE_MESSAGES.CREATE.SUCCESS);
+      message.success(id ? NOTICE_MESSAGES.UPDATE.SUCCESS : NOTICE_MESSAGES.CREATE.SUCCESS);
       form.resetFields();
       setFileList([]);
       setPdfFileList([]);
@@ -136,20 +208,20 @@ const CreateNotice: React.FC = () => {
         <Breadcrumb.Item>
           <Link to="/notice-board">Notice Board</Link>
         </Breadcrumb.Item>
-        <Breadcrumb.Item>Create Notice</Breadcrumb.Item>
+        <Breadcrumb.Item>{id ? 'Edit Notice' : 'Create Notice'}</Breadcrumb.Item>
       </Breadcrumb>
-      <Button
-        type="link"
-        icon={<ArrowLeftOutlined />}
-        onClick={() => navigate('/notice-board')}
-        className="mb-4 text-white hover:text-blue-400"
-      >
-        Back to Notice Board
-      </Button>
 
       <div className="max-w-xl mx-auto">
+        <Button
+          type="link"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate('/notice-board')}
+          className="mb-4 text-white hover:text-blue-400 p-0"
+        >
+          Back to Notice Board
+        </Button>
         <Title level={2} className="text-white mb-6">
-          Create Notice
+          {id ? 'Edit Notice' : 'Create Notice'}
         </Title>
         <Form form={form} layout="vertical" onFinish={handleSubmit} className="bg-yt-light-gray p-6 rounded">
           <Form.Item label={<span className="text-white">Title</span>} name="title" rules={[FORM_RULES.required]}>
@@ -216,7 +288,7 @@ const CreateNotice: React.FC = () => {
 
           <Form.Item className="mb-0">
             <Button type="primary" htmlType="submit" className="w-full">
-              Create Notice
+              {id ? 'Update Notice' : 'Create Notice'}
             </Button>
           </Form.Item>
         </Form>
@@ -225,4 +297,4 @@ const CreateNotice: React.FC = () => {
   );
 };
 
-export default CreateNotice;
+export default NoticeForm;

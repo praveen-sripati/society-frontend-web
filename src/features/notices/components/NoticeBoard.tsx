@@ -1,6 +1,5 @@
-import { ArrowLeftOutlined, DeleteOutlined, FilePdfOutlined, HomeOutlined, PlusOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DeleteOutlined, EditOutlined, FilePdfOutlined, HomeOutlined, PlusOutlined } from '@ant-design/icons';
 import {
-  Badge,
   Breadcrumb,
   Button,
   Card,
@@ -13,7 +12,7 @@ import {
   Tag,
   Tooltip,
   Typography,
-  notification,
+  notification
 } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -33,38 +32,25 @@ const NoticeBoard: React.FC = () => {
   const { startLoading, stopLoading } = useLoading();
   const [api, contextHolder] = notification.useNotification();
   const [modalApi, modalContextHolder] = Modal.useModal();
-  const [ellipsis, setEllipsis] = useState(true);
+  const [ellipsis, _setEllipsis] = useState(true);
   const navigate = useNavigate();
   const { can } = usePermission();
 
   const fetchNotices = async (currentFilters: NoticeFilters = {}) => {
     try {
-      console.log('[NoticeBoard] Starting fetch with filters:', currentFilters);
       startLoading();
 
       const apiFilters = {
         ...currentFilters,
         category: currentFilters.category === 'all' ? undefined : (currentFilters.category as NoticeCategory),
       };
-      console.log('[NoticeBoard] Processed API filters:', apiFilters);
-
       const data = await noticeService.getNotices(apiFilters);
-      console.log('[NoticeBoard] Received notices from service:', {
-        received: !!data,
-        length: data?.length || 0,
-        isArray: Array.isArray(data),
-      });
 
       if (!data) {
         console.warn('[NoticeBoard] No data received, setting empty array');
         setNotices([]);
         return;
       }
-
-      console.log('[NoticeBoard] Setting notices state with:', {
-        length: data.length,
-        sample: data.slice(0, 2).map((n) => ({ id: n.id, title: n.title })),
-      });
       setNotices(data);
     } catch (error: any) {
       console.error('[NoticeBoard] Error in fetchNotices:', error);
@@ -80,16 +66,10 @@ const NoticeBoard: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('[NoticeBoard] useEffect triggered with filters:', filters);
     fetchNotices(filters);
   }, [filters]);
 
   // Add logging to render
-  console.log('[NoticeBoard] Rendering with notices:', {
-    length: notices.length,
-    hasNotices: notices.length > 0,
-    sample: notices.slice(0, 2).map((n) => ({ id: n.id, title: n.title })),
-  });
 
   const handleCategoryChange = (category: NoticeCategoryFilter) => {
     setFilters((prev) => ({
@@ -107,6 +87,11 @@ const NoticeBoard: React.FC = () => {
 
   const handleNoticeClick = (id: string) => {
     navigate(`/notices/${id}`);
+  };
+
+  const handleEditClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    navigate(`/notices/${id}/edit`);
   };
 
   const handleDelete = async (e: React.MouseEvent, notice: Notice) => {
@@ -162,7 +147,7 @@ const NoticeBoard: React.FC = () => {
           type="link"
           icon={<ArrowLeftOutlined />}
           onClick={() => navigate('/dashboard')}
-          className="text-white hover:text-blue-400"
+          className="text-white hover:text-blue-400 p-0"
         >
           Back to Dashboard
         </Button>
@@ -259,6 +244,15 @@ const NoticeBoard: React.FC = () => {
                 <Tag color={CATEGORY_COLORS[notice.category]}>
                   {notice?.category?.charAt(0).toUpperCase() + notice?.category?.slice(1)}
                 </Tag>
+                <Tooltip title="Edit Notice" key="edit">
+                    <Button
+                        type="primary"
+                        icon={<EditOutlined />}
+                        onClick={(e) => handleEditClick(e, notice.id)}
+                        shape="circle" // Make it a circle
+                        size="large"   // Make it smaller
+                    />
+                </Tooltip>
                 <Text className="text-gray-400">
                   {new Date(notice.created_at).toLocaleDateString('en-GB', {
                     day: '2-digit',
