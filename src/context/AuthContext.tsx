@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-import { Navigate, useLocation } from 'react-router-dom';
-import { UserRole, Permission, hasPermission } from '../config/permissions';
 import { notification } from 'antd';
-import { useLoading } from './LoadingContext';
+import axios from 'axios';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { Permission, UserRole, hasPermission } from '../config/permissions';
 import { API_ENDPOINTS, NOTIFICATION_CONFIG } from '../constants';
 
 // Configure axios defaults

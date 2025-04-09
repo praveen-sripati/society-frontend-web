@@ -1,6 +1,7 @@
 import { Card, Col, Row, Typography } from 'antd';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UsergroupAddOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
@@ -31,7 +32,13 @@ const Dashboard: React.FC = () => {
             description: 'View and pay maintenance bills',
             route: '/payments',
             icon: '💰'
-        }
+        },
+        {
+          title: 'Visitor Pre-Approvals', // New card title
+          description: 'Manage and pre-approve visitors', // New card description
+          route: '/visitor-pre-approvals', // New card route
+          icon: <UsergroupAddOutlined />, // New card icon
+      },
     ];
 
     return (

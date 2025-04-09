@@ -7,6 +7,7 @@ import RegistrationPage from './components/RegistrationPage';
 import { AuthProvider, ProtectedRoute, PublicRoute, useAuth } from './context/AuthContext';
 import { LoadingProvider, useLoading } from './context/LoadingContext';
 import { LazyNoticeBoard, LazyNoticeDetails, LazyNoticeForm } from './features/notices';
+import { LazyVisitorPreApprovalForm, LazyVisitorPreApprovalList } from './features/visitors';
 
 // Layout wrapper for authenticated pages
 const AuthenticatedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -98,6 +99,37 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/visitor-pre-approvals"
+                element={
+                  <ProtectedRoute>
+                    <AuthenticatedLayout>
+                      <LazyVisitorPreApprovalList />
+                    </AuthenticatedLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/visitor-pre-approvals/create"
+                element={
+                  <ProtectedRoute>
+                    <AuthenticatedLayout>
+                      <LazyVisitorPreApprovalForm />
+                    </AuthenticatedLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/visitor-pre-approvals/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <AuthenticatedLayout>
+                      <LazyVisitorPreApprovalForm />
+                    </AuthenticatedLayout>
+                  </ProtectedRoute>
+                }
+              />
+              
               {/* Default Route */}
               <Route path="/" element={<DefaultRoute />} />
 

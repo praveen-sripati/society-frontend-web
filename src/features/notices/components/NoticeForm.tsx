@@ -17,7 +17,7 @@ import {
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FORM_RULES, NOTICE_CATEGORIES, NOTICE_MESSAGES, NOTIFICATION_CONFIG } from '../../../constants';
+import { API_ENDPOINTS, FORM_RULES, NOTICE_CATEGORIES, NOTICE_MESSAGES, NOTIFICATION_CONFIG } from '../../../constants';
 import { useLoading } from '../../../context/LoadingContext';
 import { CreateNoticePayload } from '../../../types/notice';
 
@@ -51,7 +51,7 @@ const NoticeForm: React.FC = () => {
       // Fetch notice data for editing
       startLoading();
       axios
-        .get(`http://localhost:3000/api/notices/${id}`) // Adjust URL if needed
+        .get(`${API_ENDPOINTS.BASE_URL}/notices/${id}`) // Adjust URL if needed
         .then((response) => {
           const noticeData = response.data.data.notice;
           form.setFieldsValue({
@@ -166,14 +166,14 @@ const NoticeForm: React.FC = () => {
 
       if (id) {
         // Editing an existing notice
-        await axios.put(`http://localhost:3000/api/notices/${id}`, formData, {
+        await axios.put(`${API_ENDPOINTS.BASE_URL}/notices/${id}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
       } else {
         // Creating a new notice
-        await axios.post('http://localhost:3000/api/notices', formData, {
+        await axios.post(`${API_ENDPOINTS.BASE_URL}/notices`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

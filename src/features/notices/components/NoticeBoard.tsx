@@ -1,4 +1,11 @@
-import { ArrowLeftOutlined, DeleteOutlined, EditOutlined, FilePdfOutlined, HomeOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  ArrowLeftOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  FilePdfOutlined,
+  HomeOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import {
   Breadcrumb,
   Button,
@@ -12,7 +19,7 @@ import {
   Tag,
   Tooltip,
   Typography,
-  notification
+  notification,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -142,36 +149,37 @@ const NoticeBoard: React.FC = () => {
         </Breadcrumb.Item>
         <Breadcrumb.Item>Notice Board</Breadcrumb.Item>
       </Breadcrumb>
-      <div className="flex items-center justify-between mb-6">
+
         <Button
           type="link"
           icon={<ArrowLeftOutlined />}
           onClick={() => navigate('/dashboard')}
-          className="text-white hover:text-blue-400 p-0"
+          className="text-white hover:text-blue-400 p-0 mb-4"
         >
           Back to Dashboard
         </Button>
+
+      <div className="mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <Title level={2}>
+          Notice Board
+        </Title>
         {can('create:notice') && (
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/notices/create')}>
             Create Notice
           </Button>
         )}
-      </div>
-
-      <div className="mb-6">
-        <Title level={2} className="text-white mb-6">
-          Notice Board
-        </Title>
-        <Space className="w-full justify-end mb-4">
+        </div>
+        <div className="flex justify-end items-center">
           <Select
             placeholder="Filter by category"
             value={filters.category || 'all'}
-            style={{ width: 200 }}
+            style={{ width: 200, marginRight: 20 }}
             options={NOTICE_FILTER_CATEGORIES}
             onChange={handleCategoryChange}
           />
           <Search placeholder="Search notices" allowClear onSearch={handleSearch} style={{ width: 300 }} />
-        </Space>
+        </div>
       </div>
 
       {notices.length > 0 ? (
@@ -244,15 +252,17 @@ const NoticeBoard: React.FC = () => {
                 <Tag color={CATEGORY_COLORS[notice.category]}>
                   {notice?.category?.charAt(0).toUpperCase() + notice?.category?.slice(1)}
                 </Tag>
-                <Tooltip title="Edit Notice" key="edit">
+                {can('edit:notice') && (
+                  <Tooltip title="Edit Notice" key="edit">
                     <Button
-                        type="primary"
-                        icon={<EditOutlined />}
-                        onClick={(e) => handleEditClick(e, notice.id)}
-                        shape="circle" // Make it a circle
-                        size="large"   // Make it smaller
+                      type="primary"
+                      icon={<EditOutlined />}
+                      onClick={(e) => handleEditClick(e, notice.id)}
+                      shape="circle" // Make it a circle
+                      size="large" // Make it smaller
                     />
-                </Tooltip>
+                  </Tooltip>
+                )}
                 <Text className="text-gray-400">
                   {new Date(notice.created_at).toLocaleDateString('en-GB', {
                     day: '2-digit',
