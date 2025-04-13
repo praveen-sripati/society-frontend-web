@@ -7,7 +7,8 @@ import RegistrationPage from './components/RegistrationPage';
 import { AuthProvider, ProtectedRoute, PublicRoute, useAuth } from './context/AuthContext';
 import { LoadingProvider, useLoading } from './context/LoadingContext';
 import { LazyNoticeBoard, LazyNoticeDetails, LazyNoticeForm } from './features/notices';
-import { LazyVisitorPreApprovalForm, LazyVisitorPreApprovalList } from './features/visitors';
+import { LazyVisitorPreApprovalForm, LazyVisitorPreApprovalList } from './features/visitor-pre-approvals';
+import { LazySecurityGuardVisitorManagement } from './features/security-check-in';
 
 // Layout wrapper for authenticated pages
 const AuthenticatedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -129,7 +130,17 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              
+              <Route
+                path="/security-check-in"
+                element={
+                  <ProtectedRoute>
+                    <AuthenticatedLayout>
+                      <LazySecurityGuardVisitorManagement />
+                    </AuthenticatedLayout>
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Default Route */}
               <Route path="/" element={<DefaultRoute />} />
 

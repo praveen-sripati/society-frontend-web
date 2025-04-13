@@ -25,6 +25,30 @@ const visitorsService = {
     }
   },
 
+  getPaginatedPreApprovalsStatusUpcoming: async (page: number, limit: number) => {
+    try {
+      const response = await axios.get(`${API_ENDPOINTS.BASE_URL}/visitor-pre-approvals/paginated/upcoming`, {
+        params: { page, limit },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching pre-approvals:', error);
+      throw error; // Re-throw the error for component handling
+    }
+  },
+
+  getPaginatedPreApprovalsStatusExpired: async (page: number, limit: number) => {
+    try {
+      const response = await axios.get(`${API_ENDPOINTS.BASE_URL}/visitor-pre-approvals/paginated/expired`, {
+        params: { page, limit },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching pre-approvals:', error);
+      throw error; // Re-throw the error for component handling
+    }
+  },
+
   createPreApproval: async (values: any) => {
     try {
       const response = await axios.post(`${API_ENDPOINTS.BASE_URL}/visitor-pre-approvals`, values);

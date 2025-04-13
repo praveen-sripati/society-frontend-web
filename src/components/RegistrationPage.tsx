@@ -66,7 +66,7 @@ const RegistrationPage: React.FC = () => {
         <>
             {contextHolder}
             <div className="flex justify-center items-center h-screen bg-yt-black">
-                <div className="bg-yt-light-gray rounded-lg shadow-xl p-12 w-96 text-white">
+                <div className="bg-yt-light-gray rounded-lg  p-12 w-[500px] text-white">
                     <Title level={2} className="text-center mb-16 text-white">Create Account</Title>
                     <Form form={form} layout="vertical" onFinish={handleRegistration}>
                         <Form.Item

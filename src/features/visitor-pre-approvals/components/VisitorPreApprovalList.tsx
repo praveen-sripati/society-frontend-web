@@ -1,5 +1,17 @@
 import { ArrowLeftOutlined, HomeOutlined } from '@ant-design/icons';
-import { Breadcrumb, Button, Modal, Space, Table, TableColumnsType, Tooltip, Typography, message, notification } from 'antd';
+import {
+  Breadcrumb,
+  Button,
+  Modal,
+  Space,
+  Table,
+  TableColumnsType,
+  Tag,
+  Tooltip,
+  Typography,
+  message,
+  notification,
+} from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,6 +19,7 @@ import { useLoading } from '../../../context/LoadingContext'; // Adjust the impo
 import { useUser } from '../../../hooks/useUser';
 import visitorsService from '../../../services/visitorsService';
 import { PreApproval } from '../../../types/visitors';
+import { STATUS_COLORS } from '../../../constants';
 
 const { Title } = Typography;
 
@@ -76,6 +89,20 @@ const VisitorPreApprovalList: React.FC = () => {
     setPageSize(pagination.pageSize);
   };
 
+  const displayTags = (record: PreApproval) => {
+    if (record.status === 'pending') {
+      return <Tag color={STATUS_COLORS.pending}>pending</Tag>;
+    } else if (record.status === 'expired') {
+      return <Tag color={STATUS_COLORS.expired}>expired</Tag>;
+    } else if (record.status === 'checked_in') {
+      return <Tag color={STATUS_COLORS.checked_in}>Checked In</Tag>;
+    } else if (record.status === 'checked_out') {
+      return <Tag color={STATUS_COLORS.checked_out}>Checked Out</Tag>;
+    } else {
+      return 'NA';
+    }
+  };
+
   const columns: TableColumnsType<PreApproval> = [
     {
       title: 'Visitor Name',
@@ -115,6 +142,11 @@ const VisitorPreApprovalList: React.FC = () => {
       sorter: (a: PreApproval, b: PreApproval) => dayjs(a.created_at).valueOf() - dayjs(b.created_at).valueOf(),
     },
     {
+      title: 'Status',
+      key: 'status',
+      render: (_: any, record: PreApproval) => <Space size="middle">{displayTags(record)}</Space>,
+    },
+    {
       title: 'Actions',
       key: 'actions',
       render: (_: any, record: PreApproval) => (
@@ -129,7 +161,7 @@ const VisitorPreApprovalList: React.FC = () => {
               </Button>
             </>
           ) : (
-            <Tooltip title="Not Applicable">
+            <Tooltip title="Not Authorized">
               <span>NA</span>
             </Tooltip>
           )}

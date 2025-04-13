@@ -7,4 +7,5 @@ export interface PreApproval {
   purpose: string | null;
   created_at: string;
   apartment_number: string;
+  status: 'expired' | 'pending' | 'checked_in' | 'checked_out';
 }
